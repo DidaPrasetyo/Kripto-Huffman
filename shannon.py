@@ -97,7 +97,7 @@ def main(file, conn):
     conn.send(msg.encode())
     time.sleep(2)
     data = Image.fromarray(res)
-    data.save('uncompressed_'+file)
+    data.save('compressed_'+file)
     if sudhi.all() == res.all():
         msg = "Success"
         conn.send(msg.encode())

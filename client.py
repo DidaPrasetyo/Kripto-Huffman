@@ -42,7 +42,7 @@ def client_program():
 
             while data != "Done":
                 data = client_socket.recv(4096).decode()  # receive response               
-                print('Desponse from server : ' + data)  # show in terminal
+                print('Response from server : ' + data)  # show in terminal
 
             input("Press enter to continue ...")
         else:
