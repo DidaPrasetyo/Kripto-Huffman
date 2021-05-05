@@ -1,6 +1,7 @@
-from huffman import HuffmanCoding
+import huffman, shannon
 import socket
 import json
+import time
 
 
 def server_program():
@@ -23,18 +24,28 @@ def server_program():
             # if data is not received break
             break
         data = json.loads(data.decode())
-        data = data.get("filename") + ".txt"
-        h = HuffmanCoding(data)
+        menu = data.get("menu")
+        if menu == "1":
+            huff = data.get("filename") + ".txt"
+            print("Process Huffman start")
+            h = huffman.HuffmanCoding(huff)
+            time.sleep(2)
+            output_path = h.compress()
+            decom_path = h.decompress(output_path)
 
-        output_path = h.compress()
-        print("Compressed file path: " + output_path)
+            send = json.dumps({"a": output_path, "b": decom_path})
+            conn.send(send.encode())
+            time.sleep(2)
+            print("Process done, waiting for next input")
+        elif menu == "2":
+            shann = data.get("filename")
+            print("Process Shannon start")
+            s = shannon.main(shann, conn)
 
-        decom_path = h.decompress(output_path)
-        print("Decompressed file path: " + decom_path)
+            if s == "Done":
+                conn.send(s.encode())
 
-        send = json.dumps({"a": output_path, "b": decom_path})
-        conn.send(send.encode())
-        print("Process done, waiting for next input")
+            print("Process done, waiting for next input")
 
     print("Client disconnected, Server terminated")
     conn.close()  # close the connection

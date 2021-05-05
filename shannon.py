@@ -92,6 +92,7 @@ def main(file, conn):
     res = np.reshape(res, shape)
     msg = "Input image dimensions:"+str(shape)
     conn.send(msg.encode())
+    time.sleep(2)
     msg = "Output image dimensions:"+str(res.shape)
     conn.send(msg.encode())
     time.sleep(2)
@@ -100,6 +101,7 @@ def main(file, conn):
     if sudhi.all() == res.all():
         msg = "Success"
         conn.send(msg.encode())
+    time.sleep(2)
     return "Done"
 
 # main('100px.jpg')
