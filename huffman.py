@@ -1,12 +1,16 @@
 import heapq
 import os
 
+# Membuat class untuk Huffman Coding
+
 class HuffmanCoding:
 	def __init__(self, path):
 		self.path = path
 		self.heap = []
 		self.codes = {}
 		self.reverse_mapping = {}
+
+	# Membuat class untuk Heap Node
 
 	class HeapNode:
 		def __init__(self, char, freq):
@@ -15,7 +19,8 @@ class HuffmanCoding:
 			self.left = None
 			self.right = None
 
-		# defining comparators less_than and equals
+		# Mendefinisikan perbandingan untuk less than dan equal
+
 		def __lt__(self, other):
 			return self.freq < other.freq
 
@@ -26,7 +31,7 @@ class HuffmanCoding:
 				return False
 			return self.freq == other.freq
 
-	# functions for compression:
+	# Menghitung frekuensi dari tiap karakter
 
 	def make_frequency_dict(self, text):
 		frequency = {}
@@ -36,10 +41,14 @@ class HuffmanCoding:
 			frequency[character] += 1
 		return frequency
 
+	# Membuat prority queue dengan bantuan Heap Queue
+
 	def make_heap(self, frequency):
 		for key in frequency:
 			node = self.HeapNode(key, frequency[key])
 			heapq.heappush(self.heap, node)
+
+	# Membuat huffman tree. Menyimpan root node ke dalam Heap
 
 	def merge_nodes(self):
 		while(len(self.heap)>1):
@@ -52,6 +61,12 @@ class HuffmanCoding:
 
 			heapq.heappush(self.heap, merged)
 
+	# Membuat codes untuk tiap karakter dan menyimpannya
+
+	def make_codes(self):
+		root = heapq.heappop(self.heap)
+		current_code = ""
+		self.make_codes_helper(root, current_code)
 
 	def make_codes_helper(self, root, current_code):
 		if(root == None):
@@ -66,11 +81,7 @@ class HuffmanCoding:
 		self.make_codes_helper(root.right, current_code + "1")
 
 
-	def make_codes(self):
-		root = heapq.heappop(self.heap)
-		current_code = ""
-		self.make_codes_helper(root, current_code)
-
+	# Mengganti karakter dengan codes yang telah dibuat
 
 	def get_encoded_text(self, text):
 		encoded_text = ""
@@ -78,6 +89,7 @@ class HuffmanCoding:
 			encoded_text += self.codes[character]
 		return encoded_text
 
+	# Menambahkan padding pada text yang telah diencode
 
 	def pad_encoded_text(self, encoded_text):
 		extra_padding = 8 - len(encoded_text) % 8
@@ -88,6 +100,7 @@ class HuffmanCoding:
 		encoded_text = padded_info + encoded_text
 		return encoded_text
 
+	# Mengubah bits kedalam bytes. Return array bytes
 
 	def get_byte_array(self, padded_encoded_text):
 		if(len(padded_encoded_text) % 8 != 0):
@@ -100,32 +113,39 @@ class HuffmanCoding:
 			b.append(int(byte, 2))
 		return b
 
+	# Melakukan kompresi
 
 	def compress(self):
 		filename, file_extension = os.path.splitext(self.path)
 		output_path = filename + ".bin"
-
+		# Membuka file input dan lokasi output
 		with open(self.path, 'r+') as file, open(output_path, 'wb') as output:
 			text = file.read()
 			text = text.rstrip()
-
+			# Menyimpan frekuensi karakter
 			frequency = self.make_frequency_dict(text)
+			# Membuat priority queue
 			self.make_heap(frequency)
+			# Membuat huffman tree
 			self.merge_nodes()
+			# Membuat codes tiap karakter
 			self.make_codes()
-
+			# Mengganti karakter dengan codes yang telah dibuat
 			encoded_text = self.get_encoded_text(text)
+			# Menambahkan padding
 			padded_encoded_text = self.pad_encoded_text(encoded_text)
-
+			# Mengubah bits kedalam bytes
 			b = self.get_byte_array(padded_encoded_text)
+			# Menuliskannya pada output
 			output.write(bytes(b))
 
 		print("Compressed")
 		return output_path
 
 
-	""" functions for decompression: """
+	""" Fungsi untuk dekompresi: """
 
+	# Menghapus padding lalu return
 
 	def remove_padding(self, padded_encoded_text):
 		padded_info = padded_encoded_text[:8]
@@ -135,6 +155,8 @@ class HuffmanCoding:
 		encoded_text = padded_encoded_text[:-1*extra_padding]
 
 		return encoded_text
+
+	# Melakukan decode lalu return
 
 	def decode_text(self, encoded_text):
 		current_code = ""
@@ -149,25 +171,26 @@ class HuffmanCoding:
 
 		return decoded_text
 
+	# Melakukan decompress
 
 	def decompress(self, input_path):
 		filename, file_extension = os.path.splitext(self.path)
 		output_path = filename + "_decompressed" + ".txt"
-
+		# Membuka file input dan lokasi output
 		with open(input_path, 'rb') as file, open(output_path, 'w') as output:
 			bit_string = ""
-
+			# Mengubah bytes menjadi bits
 			byte = file.read(1)
 			while(len(byte) > 0):
 				byte = ord(byte)
 				bits = bin(byte)[2:].rjust(8, '0')
 				bit_string += bits
 				byte = file.read(1)
-
+			# Menghapus padding lalu disimpan
 			encoded_text = self.remove_padding(bit_string)
-
+			# Menyimpan hasil decode
 			decompressed_text = self.decode_text(encoded_text)
-			
+			# Menuliskannya pada output
 			output.write(decompressed_text)
 
 		print("Decompressed")
